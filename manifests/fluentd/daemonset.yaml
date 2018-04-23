@@ -11,7 +11,19 @@ spec:
       labels:
         app: fluentd
     spec:
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 2000
       serviceAccountName: fluentd
+      initContainers:
+        - name: copy-configs
+          image: busybox
+          command: ['sh', '-c', 'cp /tmp/config-volume-configmap/* /tmp/config-volume 2>/dev/null || true']
+          volumeMounts:
+            - name: config
+              mountPath: /tmp/config-volume-configmap
+            - name: config-volume
+              mountPath: /tmp/config-volume
       containers:
       - name: fluentd
         image: fluent/fluentd-kubernetes-daemonset:v0.12.33-elasticsearch
@@ -26,7 +38,7 @@ spec:
         - name: DEBUG
           value: "true"
         volumeMounts:
-        - name: config
+        - name: config-volume
           mountPath: /fluentd/etc
         - name: host-var-log
           mountPath: /var/log
@@ -35,9 +47,12 @@ spec:
           # readOnly: true
         - name: minikube-var-lib-docker-containers
           mountPath: /mnt/sda1/var/lib/docker/containers
-        # securityContext:
-        #   runAsUser: 0
+        securityContext:
+          allowPrivilegeEscalation: true
+          privileged: true
       volumes:
+      - name: config-volume
+        emptyDir: {}
       - name: config
         configMap:
           name: fluentd

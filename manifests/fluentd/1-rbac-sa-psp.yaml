@@ -8,3 +8,95 @@ metadata:
     app: fluentd
     stack: logging
 ---
+apiVersion: extensions/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: privileged
+spec:
+  privileged: true
+  allowPrivilegeEscalation: true
+  hostNetwork: true
+  hostPID: true
+  hostIPC: true
+  hostPorts:
+  - min: 1
+    max: 32000
+  fsGroup:
+    rule: RunAsAny
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  volumes:
+  - '*'
+---    
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fluentd
+  namespace: logging
+  labels:
+    app: fluentd
+    stack: logging
+rules:
+- apiGroups:
+  - extensions
+  resources:
+  - podsecuritypolicies
+  resourceNames:
+  - fluentd
+  verbs:
+  - use
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: fluentd
+  namespace: logging
+  labels:
+    app: fluentd
+    stack: logging
+subjects:
+- kind: ServiceAccount
+  name: fluentd
+roleRef:
+  kind: Role
+  name: fluentd
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: fluentd
+  labels:
+    app: fluentd
+    stack: logging
+---
+apiVersion: extensions/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: fluentd
+  labels:
+    app: fluentd
+    stack: logging
+spec:
+  privileged: true
+  allowPrivilegeEscalation: true
+  fsGroup:
+    rule: RunAsAny
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  volumes:
+  - emptyDir
+  - secret
+  - downwardAPI
+  - configMap
+  - persistentVolumeClaim
+  - projected
+  - hostPath
