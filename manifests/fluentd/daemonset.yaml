@@ -11,9 +11,6 @@ spec:
       labels:
         app: fluentd
     spec:
-      securityContext:
-        runAsUser: 1000
-        fsGroup: 2000
       serviceAccountName: fluentd
       initContainers:
         - name: copy-configs
@@ -47,9 +44,6 @@ spec:
           # readOnly: true
         - name: minikube-var-lib-docker-containers
           mountPath: /mnt/sda1/var/lib/docker/containers
-        securityContext:
-          allowPrivilegeEscalation: true
-          privileged: true
       volumes:
       - name: config-volume
         emptyDir: {}
