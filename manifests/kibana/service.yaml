@@ -6,7 +6,7 @@ metadata:
     app: kibana
     stack: logging
 spec:
-  type: NodePort
+  type: LoadBalancer
   ports:
   - name: "ui"
     port: 5601
